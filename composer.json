@@ -1,0 +1,15 @@
+{
+    "require": {
+        "altayofficial/bedrock-protocol": "^59.0",
+        "flow-php/snappy": "^0.10.0",
+        "ext-encoding": "~1.0.0",
+        "phpseclib/phpseclib": "^4.0",
+        "axolotl-pm/nethernet": "dev-master",
+        "skoerfgen/acmecert": "^3.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Nether\\": "src"
+        }
+    }
+}
