@@ -1,0 +1,23 @@
+{
+    "server_settings": {
+        "binding_address": "0.0.0.0",
+        "port": 19132,
+        "server_motd": "Netherrack",
+        "level_name": "",
+        "max_players": 20,
+        "default_gamemode": 0
+    },
+    "downstreams": {
+        "lobby": {
+            "server_address": "127.0.0.1",
+            "port": 10133
+        }
+    },
+    "users": {
+        "oPinqzz": {
+            "permissions": [
+                "netherrack.player.transfer"
+            ]
+        }
+    }
+}
