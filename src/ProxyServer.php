@@ -25,6 +25,7 @@ use LogLevel;
 use Nether\logger\ProxyLogger;
 use Nether\network\handlers\ClientNetworkLevelHandler;
 use Nether\network\ServerNetworkEventListener;
+use Nether\player\ProxiedPlayerManager;
 use Nether\player\sessions\SessionManager;
 use Nether\railway\engines\config\ConfigEngine;
 use pocketmine\nethernet\identity\SelfSignedIdentityProvider;
@@ -39,14 +40,19 @@ use pocketmine\nethernet\signaling\http\ServerStatus;
 class ProxyServer {
 
     private NetherNetServer $server;
+    private MutableServerStatusProvider $status;
+
     private Logger $proxyLogger;
     private ConfigEngine $config_engine;
+    private ProxiedPlayerManager $proxied_player_manager;
+
     public const MAIN_DIR = __DIR__ . "/.." ;
 
     public function __construct(){
 
         $this->proxyLogger = new ProxyLogger;
         $this->config_engine = new ConfigEngine($this);
+        $this->proxied_player_manager = new ProxiedPlayerManager($this);
 
         $this->config_engine->createProxyConfig();
 
@@ -70,20 +76,22 @@ class ProxyServer {
             identityProvider: new SelfSignedIdentityProvider($identity)
         );
 
+        $this->status = new MutableServerStatusProvider(new ServerStatus(
+            $this->config_engine->get("server_settings.server_motd"),
+            2193,
+            "1.26.50",
+            $this->config_engine->get("server_settings.level_name"),
+            0,
+            $this->config_engine->get("server_settings.max_players")
+        ));
+
         $this->server = NetherNetServer::create($config, new ServerNetworkEventListener($this, new ClientNetworkLevelHandler, new SessionManager));
         $this->server->addSignaling(
             new HttpSignaling(
                 negotiator: $this->server->getNegotiator(),
                 bindAddress: $this->config_engine->get("server_settings.binding_address"),
                 port: $this->config_engine->get("server_settings.port"),
-                statusProvider: new MutableServerStatusProvider(new ServerStatus(
-                    $this->config_engine->get("server_settings.server_motd"),
-                    2193,
-                    "1.26.50",
-                    $this->config_engine->get("server_settings.level_name"),
-                    0,
-                    $this->config_engine->get("server_settings.max_players")
-                ))
+                statusProvider: $this->status
             )
         );
 
@@ -91,13 +99,13 @@ class ProxyServer {
 
     public function start() : void {
         $this->server->start();
-        $this->proxyLogger->log(LogLevel::INFO, "[Nether]: Started Proxy...");
-        $this->proxyLogger->log(LogLevel::INFO, "[Nether]: NetherNet Signaling Interface Started on : " . $this->config_engine->get("server_settings.binding_address") . ":" . $this->config_engine->get("server_settings.port"));
-        $this->config_engine->set("users.oPinqzz.permissions", ["netherrack.player.transfer"]);
+        $this->proxyLogger->log(LogLevel::INFO, "[Netherrack]: Started Proxy...");
+        $this->proxyLogger->log(LogLevel::INFO, "[Netherrack]: NetherNet Signaling Interface Started on : " . $this->config_engine->get("server_settings.binding_address") . ":" . $this->config_engine->get("server_settings.port"));
        
         while($this->server->isRunning()) {
             $this->server->tick();
-            usleep(50000);
+            $this->updatePlayerCount();
+            usleep(50_000);
         }
 
     }
@@ -110,6 +118,29 @@ class ProxyServer {
 
     public function getProxyLogger() : ProxyLogger {
         return $this->proxyLogger;
+    }
+
+    /**
+     * @return ProxiedPlayerManager
+     */
+
+    public function getPlayerManager() : ProxiedPlayerManager {
+        return $this->proxied_player_manager;
+    }
+
+    public function getConfig() : ConfigEngine {
+        return $this->config_engine;
+    }
+
+    private function updatePlayerCount() : void {
+        $this->status->setServerStatus(new ServerStatus(
+            $this->config_engine->get("server_settings.server_motd"),
+            2193,
+            "1.26.50",
+            $this->config_engine->get("server_settings.level_name"),
+            $this->getPlayerManager()->getPlayerCount(),
+            $this->config_engine->get("server_settings.max_players")
+        ));
     }
 
 

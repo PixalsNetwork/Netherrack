@@ -23,7 +23,10 @@ namespace Nether\network\engines\auth;
 use LogLevel;
 use Nether\logger\ProxyLogger;
 use Nether\network\engines\auth\authobjects\JWT;
+use Nether\network\handlers\ClientNetworkLevelHandler;
+use Nether\player\ProxiedPlayer;
 use Nether\player\sessions\ProxiedSession;
+use Nether\ProxyServer;
 use phpseclib4\Crypt\PublicKeyLoader;
 use phpseclib4\Crypt\RSA;
 use phpseclib4\Crypt\RSA\PublicKey;
@@ -33,19 +36,21 @@ use pocketmine\nethernet\crypto\CryptoException;
 use pocketmine\nethernet\crypto\EcdsaSignature;
 use pocketmine\nethernet\identity\JsonWebToken;
 use pocketmine\nethernet\session\Session;
+use pocketmine\network\mcpe\protocol\DisconnectPacket;
 use pocketmine\network\mcpe\protocol\LoginPacket;
 
 final class AuthenticationEngine {
 
     private const BASIC_TOKEN_AUDIENCE = "api://auth-minecraft-services/multiplayer";
-    private ProxyLogger $logger;
+    private ProxyServer $server;
 
-    public function __construct(ProxyLogger $logger){
-        $this->logger = $logger;
+    public function __construct(ProxyServer $server){
+        $this->server = $server;
     }
 
     public function authenticateUser(LoginPacket $lp, Session $session, ProxiedSession $sP) : void {
         $authInfo = json_decode($lp->authInfoJson, true);
+        $clientHandler = new ClientNetworkLevelHandler;
         $jwt = new JWT($lp->clientDataJwt);
         $token = new JWT($authInfo["Token"]);
         $jwt_sys = JsonWebToken::parse($authInfo["Token"]);
@@ -57,11 +62,14 @@ final class AuthenticationEngine {
             $this->verifyMinecraftSignature($token);
             $this->verifyTokenAudience($token);
             $this->verifyTokenIssuer($token);
-            $this->logger->log(LogLevel::DEBUG, "[AuthenticationEngine]: Successfully Finished Authentication for: " . $sP->getConnection()->getRemoteAddress());
+            $sP->setPlayerName($token->decryptedPayload["xname"]);
+            $sP->setXUID($token->decryptedPayload["xid"]);
+            $sP->setUUID();
+            $this->server->getPlayerManager()->createPlayerObj(new ProxiedPlayer($this->server, $sP, $session));
+            $this->server->getProxyLogger()->log(LogLevel::DEBUG, "[AuthenticationEngine]: Successfully Finished Authentication for: " . $sP->getConnection()->getRemoteAddress());
 
         } catch (CryptoException $e) {
-            // TODO : SEND SESSION A DisconnectPacket.
-            echo $e->getMessage() . PHP_EOL;
+            $clientHandler->sendPackets($session, $sP, DisconnectPacket::create(36, "Netherrack Error: Not Authenticated with Microsoft Services.", null));
         }
 
     }

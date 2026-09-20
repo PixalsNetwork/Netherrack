@@ -26,7 +26,7 @@ namespace Nether\player\sessions;
 
 class SessionManager {
 
-    private static array $sessions;
+    private static array $sessions = [];
     
     public function createSession(ProxiedSession $session) {
         self::$sessions[$session->getConnection()->getNetworkId()] = $session;
@@ -41,7 +41,9 @@ class SessionManager {
     }
 
     public function destroySession(String $networkID) : void {
-        unset(self::$sessions[$networkID]);
+        if(isset(self::$sessions[$networkID])) {
+            unset(self::$sessions[$networkID]);
+        }
     }
 
 

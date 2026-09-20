@@ -23,6 +23,7 @@ namespace Nether\network\handlers;
 
 use Nether\logger\ProxyLogger;
 use Nether\network\engines\auth\AuthenticationEngine;
+use Nether\network\engines\auth\authobjects\JWT;
 use Nether\network\types\authentication\AuthToken;
 use Nether\network\types\authentication\clientDataJWT;
 use Nether\player\sessions\ProxiedSession;
@@ -33,10 +34,13 @@ use pmmp\encoding\ByteBufferReader;
 use pocketmine\nethernet\session\Session;
 use pocketmine\network\mcpe\protocol\LoginPacket;
 use pocketmine\network\mcpe\protocol\NetworkSettingsPacket;
+use pocketmine\network\mcpe\protocol\Packet;
 use pocketmine\network\mcpe\protocol\RequestNetworkSettingsPacket;
 use pocketmine\network\mcpe\protocol\serializer\PacketBatch;
 
 class ClientNetworkLevelHandler {
+
+    private const COMPRESSION = "\x01";
 
     public function handleRequestNetworkSettings(Session $session, ProxiedSession $sP) : void {
         $stream = new ByteBufferWriter();
@@ -46,10 +50,23 @@ class ClientNetworkLevelHandler {
         $sP->setCompression(true);
     }
 
-    public function handleLoginPacket(Session $session, LoginPacket $packet, ProxiedSession $sP, ProxyLogger $logger) : void {
+    public function handleLoginPacket(Session $session, LoginPacket $packet, ProxiedSession $sP, ProxyServer $server) : void {
 
-        $authEngine = new AuthenticationEngine($logger);
+
+        $authEngine = new AuthenticationEngine($server);
         $authEngine->authenticateUser($packet, $session, $sP);
+
+    }
+
+    public function sendPackets(Session $session, ProxiedSession $sP, Packet $packet) : void {
+        $stream = new ByteBufferWriter();
+        PacketBatch::encodePackets($stream, [$packet]);
+        $batchPayload = $stream->getData();
+        
+        if($sP->getCompression()) {
+            $batchPayload = self::COMPRESSION . snappy_compress($batchPayload);
+        }
+        $session->send($batchPayload);
 
     }
 

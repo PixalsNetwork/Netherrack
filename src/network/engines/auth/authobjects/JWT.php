@@ -25,12 +25,12 @@ namespace Nether\network\engines\auth\authobjects;
 
 final class JWT {
 
-    public array $decryptedHeader;
-    public array $decryptedPayload;
+    public ?array $decryptedHeader;
+    public ?array $decryptedPayload;
 
-    public String $header;
-    public String $payload;
-    public String $signature;
+    public ?String $header;
+    public ?String $payload;
+    public ?String $signature;
 
     public function __construct(String $jwt) {
         $jwt_exploded = explode(".", $jwt);

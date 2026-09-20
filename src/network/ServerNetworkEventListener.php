@@ -56,13 +56,15 @@ class ServerNetworkEventListener implements ServerEventListener {
 
 
     public function onSessionOpen(Session $session): void {
-        $this->server->getProxyLogger()->log(LogLevel::DEBUG, "[Nether]: Session has been opened for NetworkDevice: " . $session->getRemoteAddress());
-        $this->session_manager->createSession(new ProxiedSession(new Connection($session->getRemoteAddress(), $session->getNetworkId()), false, null, null, null));
+        $this->server->getProxyLogger()->log(LogLevel::DEBUG, "[Netherrack]: Session has been opened for NetworkDevice: " . $session->getRemoteAddress());
+        $this->session_manager->createSession(new ProxiedSession(new Connection($session->getRemoteAddress(), $session->getNetworkId()), false, null, null));
+
     }
 
 
     public function onSessionClose(Session $session, DisconnectReason $reason): void {
-        $this->server->getProxyLogger()->log(LogLevel::DEBUG, "[Nether]: Session has been Destroyed for NetworkDevice: " . $this->session_manager->getSession($session->getNetworkId())->getConnection()->getRemoteAddress());
+        $this->server->getProxyLogger()->log(LogLevel::DEBUG, "[Netherrack]: Session has been Destroyed for NetworkDevice: " . $this->session_manager->getSession($session->getNetworkId())->getConnection()->getRemoteAddress());
+        $this->server->getPlayerManager()->destroyPlayer($this->server->getPlayerManager()->getPlayerByUUID($this->session_manager->getSession($session->getNetworkId())->getUUID()->toString()));
         $this->session_manager->destroySession($session->getNetworkId());
     }
 
@@ -78,7 +80,7 @@ class ServerNetworkEventListener implements ServerEventListener {
         foreach(PacketBatch::decodePackets(new ByteBufferReader($payload), PacketPool::getInstance()) as $packetObject) {
             match(true) {
                 $packetObject instanceof RequestNetworkSettingsPacket => $this->handler->handleRequestNetworkSettings($session, $sessionPlayer),
-                $packetObject instanceof LoginPacket => $this->handler->handleLoginPacket($session, $packetObject, $sessionPlayer, $this->server->getProxyLogger())
+                $packetObject instanceof LoginPacket => $this->handler->handleLoginPacket($session, $packetObject, $sessionPlayer, $this->server)
             };
         }
 

@@ -21,20 +21,21 @@
 namespace Nether\player\sessions;
 
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 class ProxiedSession {
 
     private Connection $connection;
     private bool $networkCompression;
     private ?String $player_name, $xuid;
-    private ?Uuid $uuid;
+    private ?UuidInterface $uuid;
 
 
-    public function __construct(Connection $connection, bool $compression, ?String $player_name, ?Uuid $uuid, ?String $xuid){
+    public function __construct(Connection $connection, bool $compression, ?String $player_name, ?String $xuid){
         $this->connection = $connection;
         $this->networkCompression = $compression;
         $this->player_name = $player_name;
-        $this->uuid = $uuid;
+        $this->uuid = $this->calculateUuidFromXuid($xuid);
         $this->xuid = $xuid;
     }
 
@@ -44,11 +45,11 @@ class ProxiedSession {
 
     public function getCompression() : bool { return $this->networkCompression; }
 
-    public function getPlayerName() : ?String { return $this->player_name; }
+    public function getName() : ?String { return $this->player_name; }
 
     public function getXUID() : ?String { return $this->xuid; }
 
-    public function getUUID() : ?Uuid { return $this->uuid; }
+    public function getUUID() : ?UuidInterface { return $this->uuid; }
 
     public function setCompression(bool $newCompression) : void { $this->networkCompression = $newCompression; }
 
@@ -56,7 +57,24 @@ class ProxiedSession {
 
     public function setXUID(String $data) : void { $this->xuid = $data; }
 
-    public function setUUID(Uuid $uuid) : void { $this->uuid = $uuid; }
+    public function setUUID() : void {
+        $this->uuid = $this->calculateUuidFromXuid($this->xuid);    
+    }
+
+    // Thanks, Altay!
+    private function calculateUuidFromXuid(?string $xuid) : ?UuidInterface{
+        if($xuid != null) {
+            $hash = md5("pocket-auth-1-xuid:" . $xuid, binary: true);
+		    $hash[6] = chr((ord($hash[6]) & 0x0f) | 0x30); // set version to 3
+		    $hash[8] = chr((ord($hash[8]) & 0x3f) | 0x80); // set variant to RFC 4122
+
+		    return Uuid::fromBytes($hash);
+        } else {
+            return null;
+        }
+
+
+	}
 
 
 
