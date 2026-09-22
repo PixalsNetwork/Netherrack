@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'skoerfgen\\ACMECert\\' => array($vendorDir . '/skoerfgen/acmecert/src'),
+    'raklib\\' => array($vendorDir . '/pocketmine/raklib/src'),
     'pocketmine\\utils\\' => array($vendorDir . '/pocketmine/binaryutils/src'),
     'pocketmine\\network\\mcpe\\protocol\\' => array($vendorDir . '/altayofficial/bedrock-protocol/src'),
     'pocketmine\\nethernet\\' => array($vendorDir . '/axolotl-pm/nethernet/src'),

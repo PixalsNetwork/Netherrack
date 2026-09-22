@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "edb405809598b708994741b2db42fb84",
+    "content-hash": "7add1cccffb7aa1072ac19bf6e5c9bac",
     "packages": [
         {
             "name": "altayofficial/bedrock-protocol",
@@ -102,12 +102,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/axolotl-pm/NetherNet.git",
-                "reference": "84daec36a09348f8a44eaa73e83219045e488052"
+                "reference": "b0842ab5a4a32027901f7dd1180094b36bc567af"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/axolotl-pm/NetherNet/zipball/84daec36a09348f8a44eaa73e83219045e488052",
-                "reference": "84daec36a09348f8a44eaa73e83219045e488052",
+                "url": "https://api.github.com/repos/axolotl-pm/NetherNet/zipball/b0842ab5a4a32027901f7dd1180094b36bc567af",
+                "reference": "b0842ab5a4a32027901f7dd1180094b36bc567af",
                 "shasum": ""
             },
             "require": {
@@ -144,7 +144,7 @@
                 "issues": "https://github.com/axolotl-pm/NetherNet/issues",
                 "source": "https://github.com/axolotl-pm/NetherNet/tree/master"
             },
-            "time": "2026-09-17T12:39:40+00:00"
+            "time": "2026-09-19T09:26:14+00:00"
         },
         {
             "name": "brick/math",
@@ -475,14 +475,18 @@
                     "pocketmine\\utils\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "pocketmine\\utils\\": "tests/phpunit/"
+                }
+            },
             "license": [
                 "LGPL-3.0"
             ],
             "description": "Classes and methods for conveniently handling binary data",
             "support": {
-                "issues": "https://github.com/pmmp/BinaryUtils/issues",
-                "source": "https://github.com/pmmp/BinaryUtils/tree/0.2.7"
+                "source": "https://github.com/pmmp/BinaryUtils/tree/0.2.7",
+                "issues": "https://github.com/pmmp/BinaryUtils/issues"
             },
             "abandoned": true,
             "time": "2025-12-24T04:20:35+00:00"
@@ -556,14 +560,13 @@
                     "./src"
                 ]
             },
-            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "LGPL-3.0"
             ],
             "description": "Logging components used by PocketMine-MP and related projects",
             "support": {
-                "issues": "https://github.com/pmmp/Log/issues",
-                "source": "https://github.com/pmmp/Log/tree/0.4.0"
+                "source": "https://github.com/pmmp/Log/tree/0.4.0",
+                "issues": "https://github.com/pmmp/Log/issues"
             },
             "abandoned": true,
             "time": "2021-06-18T19:08:09+00:00"
@@ -609,6 +612,49 @@
             },
             "abandoned": true,
             "time": "2023-08-03T12:56:33+00:00"
+        },
+        {
+            "name": "pocketmine/raklib",
+            "version": "1.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pmmp/RakLib.git",
+                "reference": "669eb4d1e644f91437323ef24ce3ee985182b829"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pmmp/RakLib/zipball/669eb4d1e644f91437323ef24ce3ee985182b829",
+                "reference": "669eb4d1e644f91437323ef24ce3ee985182b829",
+                "shasum": ""
+            },
+            "require": {
+                "ext-sockets": "*",
+                "php": "^8.1",
+                "php-64bit": "*",
+                "php-ipv6": "*",
+                "pocketmine/binaryutils": "^0.2.0",
+                "pocketmine/log": "^0.3.0 || ^0.4.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "2.1.33",
+                "phpstan/phpstan-strict-rules": "^2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "raklib\\": "src/"
+                }
+            },
+            "license": [
+                "GPL-3.0"
+            ],
+            "description": "A RakNet server implementation written in PHP",
+            "support": {
+                "source": "https://github.com/pmmp/RakLib/tree/1.2.1",
+                "issues": "https://github.com/pmmp/RakLib/issues"
+            },
+            "abandoned": true,
+            "time": "2025-12-24T03:02:42+00:00"
         },
         {
             "name": "ramsey/collection",

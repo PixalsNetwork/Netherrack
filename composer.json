@@ -5,8 +5,25 @@
         "ext-encoding": "~1.0.0",
         "phpseclib/phpseclib": "^4.0",
         "axolotl-pm/nethernet": "dev-master",
-        "skoerfgen/acmecert": "^3.7"
+        "skoerfgen/acmecert": "^3.7",
+        "pocketmine/raklib": "1.2.1",
+        "pocketmine/log": "0.4.0",
+        "pocketmine/binaryutils": "0.2.7"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/pmmp/RakLib.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/pmmp/Log.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/pmmp/BinaryUtils.git"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "Nether\\": "src"

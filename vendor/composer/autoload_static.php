@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit1204a5b9cd2fbd9d1a6465a80f9c36ff
+class ComposerStaticInit7add1cccffb7aa1072ac19bf6e5c9bac
 {
     public static $files = array (
         'e39a8b23c42d4e1452234d762b03835a' => __DIR__ . '/..' . '/ramsey/uuid/src/functions.php',
@@ -17,6 +17,10 @@ class ComposerStaticInit1204a5b9cd2fbd9d1a6465a80f9c36ff
         's' =>
         array (
             'skoerfgen\\ACMECert\\' => 19,
+        ),
+        'r' =>
+        array (
+            'raklib\\' => 7,
         ),
         'p' =>
         array (
@@ -59,6 +63,10 @@ class ComposerStaticInit1204a5b9cd2fbd9d1a6465a80f9c36ff
         'skoerfgen\\ACMECert\\' =>
         array (
             0 => __DIR__ . '/..' . '/skoerfgen/acmecert/src',
+        ),
+        'raklib\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/pocketmine/raklib/src',
         ),
         'pocketmine\\utils\\' =>
         array (
@@ -141,9 +149,9 @@ class ComposerStaticInit1204a5b9cd2fbd9d1a6465a80f9c36ff
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit1204a5b9cd2fbd9d1a6465a80f9c36ff::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit1204a5b9cd2fbd9d1a6465a80f9c36ff::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit1204a5b9cd2fbd9d1a6465a80f9c36ff::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit7add1cccffb7aa1072ac19bf6e5c9bac::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit7add1cccffb7aa1072ac19bf6e5c9bac::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit7add1cccffb7aa1072ac19bf6e5c9bac::$classMap;
 
         }, null, ClassLoader::class);
     }

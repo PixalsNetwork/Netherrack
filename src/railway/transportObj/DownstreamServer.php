@@ -24,14 +24,25 @@ namespace Nether\railway\transportObj;
 
 
 
-class DownstreamServer {
+final class DownstreamServer {
 
     private array $data;
 
 
-    public function __construct()
-    {
+    public function __construct(array $data){
+        $this->data = $data;
+    }
 
+    public function getAddress() : String {
+        return $this->data["server_address"];
+    }
+
+    public function getPort() :int {
+        return $this->data["port"];
+    }
+
+    public function getDownstreamName() : String {
+        return $this->data["name"];
     }
 
 }

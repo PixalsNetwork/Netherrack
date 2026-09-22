@@ -28,6 +28,8 @@ use Nether\network\ServerNetworkEventListener;
 use Nether\player\ProxiedPlayerManager;
 use Nether\player\sessions\SessionManager;
 use Nether\railway\engines\config\ConfigEngine;
+use Nether\railway\engines\transport\RailwayEngine;
+use Nether\railway\handlers\ClientSocketHandler;
 use pocketmine\nethernet\identity\SelfSignedIdentityProvider;
 use pocketmine\nethernet\identity\ServerIdentity;
 use pocketmine\nethernet\NetherNetServer;
@@ -45,6 +47,7 @@ class ProxyServer {
     private Logger $proxyLogger;
     private ConfigEngine $config_engine;
     private ProxiedPlayerManager $proxied_player_manager;
+    private RailwayEngine $railway;
 
     public const MAIN_DIR = __DIR__ . "/.." ;
 
@@ -52,7 +55,8 @@ class ProxyServer {
 
         $this->proxyLogger = new ProxyLogger;
         $this->config_engine = new ConfigEngine($this);
-        $this->proxied_player_manager = new ProxiedPlayerManager($this);
+        $this->railway = new RailwayEngine($this);
+        $this->proxied_player_manager = new ProxiedPlayerManager($this, $this->railway);
 
         $this->config_engine->createProxyConfig();
 
@@ -95,19 +99,22 @@ class ProxyServer {
             )
         );
 
+
+
     }
 
     public function start() : void {
         $this->server->start();
         $this->proxyLogger->log(LogLevel::INFO, "[Netherrack]: Started Proxy...");
         $this->proxyLogger->log(LogLevel::INFO, "[Netherrack]: NetherNet Signaling Interface Started on : " . $this->config_engine->get("server_settings.binding_address") . ":" . $this->config_engine->get("server_settings.port"));
+        $this->railway->loadDownstreams();
        
         while($this->server->isRunning()) {
             $this->server->tick();
             $this->updatePlayerCount();
+            $this->railway->clientPacketReciever();
             usleep(50_000);
         }
-
     }
 
 
@@ -132,6 +139,10 @@ class ProxyServer {
         return $this->config_engine;
     }
 
+    public function getNetherNetInstance() : NetherNetServer {
+        return $this->server;
+    }
+
     private function updatePlayerCount() : void {
         $this->status->setServerStatus(new ServerStatus(
             $this->config_engine->get("server_settings.server_motd"),
@@ -142,6 +153,8 @@ class ProxyServer {
             $this->config_engine->get("server_settings.max_players")
         ));
     }
+
+    
 
 
 

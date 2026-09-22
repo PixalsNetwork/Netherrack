@@ -23,6 +23,7 @@ namespace Nether\player;
 use LogLevel;
 use Nether\player\sessions\ProxiedSession;
 use Nether\ProxyServer;
+use Nether\railway\engines\transport\RailwayEngine;
 
 final class ProxiedPlayerManager {
 
@@ -30,14 +31,17 @@ final class ProxiedPlayerManager {
     private static array $uuids = [];
     private static array $xuids = [];
     private ProxyServer $server;
+    private RailwayEngine $engine;
 
-    public function __construct(ProxyServer $server)
+    public function __construct(ProxyServer $server, RailwayEngine $engine)
     {
         $this->server = $server;
+        $this->engine = $engine;
     }
 
 
     public function createPlayerObj(ProxiedPlayer $player) : void {
+        
         if(isset(self::$uuids[$player->getPlayerSession()->getName()]) && isset(self::$players[self::$uuids[$player->getPlayerSession()->getName()]])) {
             $player->disconnect("[Netherrack]: A Player with the same account has already joined.");
         } else {
@@ -45,6 +49,7 @@ final class ProxiedPlayerManager {
             self::$uuids[$player->getPlayerSession()->getName()] = $player->getPlayerSession()->getUUID()->toString();
             self::$xuids[$player->getPlayerSession()->getXUID()] = $player->getPlayerSession()->getUUID()->toString();
             $this->server->getProxyLogger()->log(LogLevel::INFO, "[Netherrack]: Created ProxiedPlayer " . $player->getPlayerSession()->getName());
+            $this->engine->createDownstreamConnection($player, $this->engine->getDownstreamServer($this->server->getConfig()->get("server_settings.main_downstream")));
         }
     }
 

@@ -21,16 +21,10 @@
 
 namespace Nether\network\handlers;
 
-use Nether\logger\ProxyLogger;
 use Nether\network\engines\auth\AuthenticationEngine;
-use Nether\network\engines\auth\authobjects\JWT;
-use Nether\network\types\authentication\AuthToken;
-use Nether\network\types\authentication\clientDataJWT;
 use Nether\player\sessions\ProxiedSession;
 use Nether\ProxyServer;
 use pmmp\encoding\ByteBufferWriter;
-use pmmp\encoding\BE;
-use pmmp\encoding\ByteBufferReader;
 use pocketmine\nethernet\session\Session;
 use pocketmine\network\mcpe\protocol\LoginPacket;
 use pocketmine\network\mcpe\protocol\NetworkSettingsPacket;

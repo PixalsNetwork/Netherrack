@@ -20,6 +20,7 @@
 
 namespace Nether\player\sessions;
 
+use Nether\railway\transportObj\DownstreamServer;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
@@ -29,7 +30,7 @@ class ProxiedSession {
     private bool $networkCompression;
     private ?String $player_name, $xuid;
     private ?UuidInterface $uuid;
-
+    private ?DownstreamServer $connectedTo = null;
 
     public function __construct(Connection $connection, bool $compression, ?String $player_name, ?String $xuid){
         $this->connection = $connection;
@@ -51,6 +52,10 @@ class ProxiedSession {
 
     public function getUUID() : ?UuidInterface { return $this->uuid; }
 
+    public function getConnectedServer() : ?DownstreamServer {
+        return $this->connectedTo;
+    }
+
     public function setCompression(bool $newCompression) : void { $this->networkCompression = $newCompression; }
 
     public function setPlayerName(String $name) : void { $this->player_name = $name; }
@@ -59,6 +64,10 @@ class ProxiedSession {
 
     public function setUUID() : void {
         $this->uuid = $this->calculateUuidFromXuid($this->xuid);    
+    }
+
+    public function setDownstream(DownstreamServer $downstream) : void  {
+        $this->connectedTo = $downstream;
     }
 
     // Thanks, Altay!

@@ -86,7 +86,8 @@ final class ConfigEngine {
                 "server_motd" => "Netherrack",
                 "level_name" => "",
                 "max_players" => 20,
-                "default_gamemode" => 0
+                "default_gamemode" => 0,
+                "main_downstream" => "lobby"
             ],
             "downstreams" => [
                 "lobby" => [

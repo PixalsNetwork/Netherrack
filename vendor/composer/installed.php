@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => '__root__',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'dd698fd7fe4e9d8dcc4537b29b36b9a0e63da96e',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         '__root__' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'dd698fd7fe4e9d8dcc4537b29b36b9a0e63da96e',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -40,7 +40,7 @@
         'axolotl-pm/nethernet' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '84daec36a09348f8a44eaa73e83219045e488052',
+            'reference' => 'b0842ab5a4a32027901f7dd1180094b36bc567af',
             'type' => 'library',
             'install_path' => __DIR__ . '/../axolotl-pm/nethernet',
             'aliases' => array(
@@ -117,6 +117,15 @@
             'reference' => 'dc132d93595b32e9f210d78b3c8d43c662a5edbf',
             'type' => 'library',
             'install_path' => __DIR__ . '/../pocketmine/math',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'pocketmine/raklib' => array(
+            'pretty_version' => '1.2.1',
+            'version' => '1.2.1.0',
+            'reference' => '669eb4d1e644f91437323ef24ce3ee985182b829',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../pocketmine/raklib',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
