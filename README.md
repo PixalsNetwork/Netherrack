@@ -42,7 +42,7 @@ The proxy is functional as a development project, but its internal APIs and netw
 ```
 Bedrock Client
       │
-      │ RakNet / UDP
+      │ NetherNet Protocol
       ▼
 ┌─────────────────┐
 │   Netherrack    │
