@@ -1,7 +1,5 @@
 <div align="center">
-<img src="https://blockrender.dev/render/block/netherrack.png?size=128" width="96" alt="Netherrack">
-
-Netherrack
+<img src="https://blockrender.dev/render/block/netherrack.png?size=128" width="96" alt="Netherrack"> <h1>Netherrack</h1>
 
 A Lightweight, Fast, Easy-to-Use Minecraft PHP Proxy
 
@@ -9,7 +7,7 @@ A Lightweight, Fast, Easy-to-Use Minecraft PHP Proxy
 
 ⸻
 
-About
+# About
 
 Netherrack is a lightweight Minecraft: Bedrock Edition proxy written in PHP.
 
@@ -83,22 +81,22 @@ Netherrack/
 
 # Installation
 
-Clone the repository:
+- Clone the repository:
 
-git clone https://github.com/PixalsNetwork/Netherrack.git
-cd Netherrack
+```git clone https://github.com/PixalsNetwork/Netherrack.git```
+```cd Netherrack```
 
-Install dependencies:
+- Install dependencies:
 
-composer install
+```composer install```
 
-Configure:
+- Configure:
 
-config.json
+```config.json```
 
-Start Netherrack:
+- Start Netherrack:
 
-php Startup.php
+```php Startup.php```
 
 ⸻
 
@@ -110,19 +108,9 @@ The project is developed as an independent PHP proxy built around that foundatio
 
 ⸻
 
-License
+# License
 
 Netherrack is released under the MIT License.
 
 See LICENSE for the full license text.
 
-⸻
-
-<div align="center">
-<img src="https://blockrender.dev/render/block/netherrack.png?size=64" width="48" alt="Netherrack">
-
-Netherrack
-
-A Lightweight, Fast, Easy-to-Use Minecraft PHP Proxy
-
-</div>
