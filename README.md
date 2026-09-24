@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://blockrender.dev/render/block/netherrack.png?size=128" width="96" alt="Netherrack"> <h1>Netherrack</h1>
+<img src="https://cdn.pixalsnetwork.net/netherrack/Netherrack.png" alt="Netherrack">
 
 A Lightweight, Fast, Easy-to-Use Minecraft PHP Proxy
 
