@@ -66,7 +66,7 @@ class ProxyServer {
 
         /**  
          * a ' Do you trust this server ? ' will prompt once, then vanish as this 
-         * system preserves the server identity, any deletion to this key will result in the same prompt.
+         * system preserves the server identity, any deletion to this key will result in the same prompt. (its a per minecraft session)
          */
         
         if(file_exists(self::MAIN_DIR . "/server_identity/server.key")) {
@@ -108,11 +108,10 @@ class ProxyServer {
         $this->proxyLogger->log(LogLevel::INFO, "[Netherrack]: Started Proxy...");
         $this->proxyLogger->log(LogLevel::INFO, "[Netherrack]: NetherNet Signaling Interface Started on : " . $this->config_engine->get("server_settings.binding_address") . ":" . $this->config_engine->get("server_settings.port"));
         $this->railway->loadDownstreams();
-       
         while($this->server->isRunning()) {
             $this->server->tick();
+            $this->railway->readDownstreamClientPackets();
             $this->updatePlayerCount();
-            $this->railway->clientPacketReciever();
             usleep(50_000);
         }
     }
