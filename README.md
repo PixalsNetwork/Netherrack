@@ -1,7 +1,5 @@
 <div align="center">
-<img src="https://cdn.pixalsnetwork.net/netherrack/Netherrack.png" alt="Netherrack">
-
-
+      <img src="https://cdn.pixalsnetwork.net/netherrack/Netherrack.png" alt="Netherrack">
 </div>
 
 ⸻
