@@ -1,7 +1,6 @@
 <div align="center">
 <img src="https://cdn.pixalsnetwork.net/netherrack/Netherrack.png" alt="Netherrack">
 
-A Lightweight, Fast, Easy-to-Use Minecraft PHP Proxy
 
 </div>
 
