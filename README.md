@@ -19,7 +19,7 @@ Netherrack is based on NetherNet and uses its networking foundation to provide a
 
 ⸻
 
-Current Status
+# Current Status
 
 Netherrack is currently in early development.
 
@@ -37,8 +37,9 @@ The proxy is functional as a development project, but its internal APIs and netw
 
 ⸻
 
-Architecture
+# Architecture
 
+```
 Bedrock Client
       │
       │ RakNet / UDP
@@ -53,11 +54,13 @@ Bedrock Client
    Backend Server
 
 Netherrack sits between the Bedrock client and the backend server, handling the network communication between them.
+```
 
 ⸻
 
-Project Structure
+# Project Structure
 
+```
 Netherrack/
 ├── src/
 ├── vendor/
@@ -67,10 +70,10 @@ Netherrack/
 ├── composer.json
 ├── server_identity/
 └── LICENSE
-
+```
 ⸻
 
-Requirements
+# Requirements
 
 * PHP 8+
 * Composer
@@ -78,7 +81,7 @@ Requirements
 
 ⸻
 
-Installation
+# Installation
 
 Clone the repository:
 
@@ -99,7 +102,7 @@ php Startup.php
 
 ⸻
 
-Based on NetherNet
+# Based on NetherNet
 
 Netherrack is based on NetherNet, using it as the foundation for its Bedrock networking implementation.
 
