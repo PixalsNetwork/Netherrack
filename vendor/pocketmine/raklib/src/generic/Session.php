@@ -257,21 +257,20 @@ abstract class Session{
 				$dataPacket = new ConnectedPong();
 				$dataPacket->decode(new PacketSerializer($packet->buffer));
 
-				$this->handlePong($dataPacket->sendPingTime, $dataPacket->sendPongTime);
+				$this->handlePong($dataPacket->sendPingTime, $dataPacket->sendPongTime, $packet->buffer);
 			}
 		}elseif($this->state === self::STATE_CONNECTED){
 			$this->onPacketReceive($packet->buffer);
-		}else{
-			//$this->logger->notice("Received packet before connection: " . bin2hex($packet->buffer));
 		}
 	}
 
 	/**
 	 * @param int $sendPongTime TODO: clock differential stuff
 	 */
-	private function handlePong(int $sendPingTime, int $sendPongTime) : void{
+	private function handlePong(int $sendPingTime, int $sendPongTime, String $buffer) : void{
 		if($sendPingTime < 0){
-			$this->logger->debug("Received invalid pong: timestamp overflow");
+			// This is maintained for proxy development, no server software in the world will send those wrong.
+			$this->onPacketReceive($buffer);
 		}else{
 			$currentTime = $this->getRakNetTimeMS();
 			if($currentTime < $sendPingTime){

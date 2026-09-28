@@ -43,6 +43,7 @@ final class AuthenticationEngine {
 
     private const BASIC_TOKEN_AUDIENCE = "api://auth-minecraft-services/multiplayer";
     private ProxyServer $server;
+    private static array $data = [];
 
     public function __construct(ProxyServer $server){
         $this->server = $server;
@@ -65,6 +66,10 @@ final class AuthenticationEngine {
             $sP->setPlayerName($token->decryptedPayload["xname"]);
             $sP->setXUID($token->decryptedPayload["xid"]);
             $sP->setUUID();
+            self::$data[$sP->getUUID()->toString()] = [
+                "auth" => $lp->authInfoJson,
+                "client" => $lp->clientDataJwt
+            ];
             $this->server->getPlayerManager()->createPlayerObj(new ProxiedPlayer($this->server, $sP, $session));
             $this->server->getProxyLogger()->log(LogLevel::DEBUG, "[AuthenticationEngine]: Successfully Finished Authentication for: " . $sP->getConnection()->getRemoteAddress());
 
@@ -157,6 +162,14 @@ final class AuthenticationEngine {
         ]);
 
         return $key;
+    }
+
+    public function getAuthJWT(String $uuid) : string {
+        return self::$data[$uuid]["auth"];
+    }
+
+    public function getClientJWT(String $uuid) : string {
+        return self::$data[$uuid]["client"];
     }
 
 

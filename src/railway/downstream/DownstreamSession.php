@@ -5,6 +5,7 @@ namespace Nether\railway\downstream;
 
 use Logger;
 use LogLevel;
+use Nether\network\engines\auth\AuthenticationEngine;
 use Override;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\RequestNetworkSettingsPacket;
@@ -23,15 +24,19 @@ use raklib\protocol\PacketReliability;
 use raklib\protocol\PacketSerializer;
 use raklib\utils\InternetAddress;
 use pmmp\encoding\ByteBufferWriter;
+use pocketmine\network\mcpe\protocol\ClientToServerHandshakePacket;
 use pocketmine\network\mcpe\protocol\NetworkSettingsPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
+use pocketmine\network\mcpe\protocol\ServerToClientHandshakePacket;
 
 class DownstreamSession extends Session
 {
-    protected DownstreamClient $client;
+    public DownstreamClient $client;
+    protected DownstreamSessionHander $handler;
     public bool $pendingNetworkSettings = false;
     public bool $session_is_compressed = false;
-
+    public bool $compression = false;
+    public string $server_jwt;
 
     #[Override]
     public function __construct(Logger $logger, InternetAddress $address, int $clientId, int $mtuSize, DownstreamClient $client, int $recvMaxSplitParts = PHP_INT_MAX, int $recvMaxConcurrentSplits = PHP_INT_MAX)
@@ -49,11 +54,19 @@ class DownstreamSession extends Session
     #[Override]
     public function onPacketReceive(string $packet): void
     {
-        $packet = substr($packet, 1);
-        foreach(PacketBatch::decodePackets(new ByteBufferReader($packet), PacketPool::getInstance()) as $packetObject) {
-            match(true) {
-                $packetObject instanceof NetworkSettingsPacket
-            }
+        if ($this->compression) {
+            $compressed = substr($packet, 2);
+            $decompressed = zlib_decode($compressed);
+            $packet = $decompressed;
+        } else {
+            $packet = substr($packet, 1);
+        }
+        foreach (PacketBatch::decodePackets(new ByteBufferReader($packet), PacketPool::getInstance()) as $packetObject) {
+            var_dump($packetObject);
+            match (true) {
+                $packetObject instanceof NetworkSettingsPacket => $this->handler->respondWithLoginPacket(),
+                $packetObject instanceof ServerToClientHandshakePacket => $this->handler->respondWithClientHandshake($packetObject)
+            };
         }
     }
 
@@ -75,6 +88,7 @@ class DownstreamSession extends Session
                 $pid = ord($encap->buffer[0]);
                 if ($pid === NewIncomingConnection::$ID && $this->state !== self::STATE_CONNECTED) {
                     $this->state = self::STATE_CONNECTED;
+                    $this->handler = new DownstreamSessionHander($this->client, new AuthenticationEngine($this->client->pr_server));
                     $this->pendingNetworkSettings = true;
                 }
             }
@@ -85,6 +99,7 @@ class DownstreamSession extends Session
             $this->client->writePacket($buffer);
         }
     }
+    
 
     #[Override]
     public function handleRakNetConnectionPacket(string $packet): void
@@ -109,17 +124,23 @@ class DownstreamSession extends Session
             $cp = new ConnectedPing;
             $cp->decode($serializer);
             $ping = $cp->sendPingTime;
-
             $this->queueConnectedPacket(ConnectedPong::create($ping, $this->getRakNetTimeMS()), PacketReliability::UNRELIABLE, 0, true);
         }
+
+
     }
 
-    public function createBedrockDataPackets(DataPacket $packet): void
+    public function createBedrockDataPackets(DataPacket $packet, bool $compression): void
     {
         $serializer = new ByteBufferWriter();
         PacketBatch::encodePackets($serializer, [$packet]);
-        $buffer = $serializer->getData();
-        $this->createEncapsulatedPacket("\xfe" . $buffer);
+        if (!$compression) {
+            $buffer = $serializer->getData();
+            $this->createEncapsulatedPacket("\xfe" . $buffer);
+        } else {
+            $buffer = "\xfe\x00" . zlib_encode($serializer->getData(), ZLIB_ENCODING_RAW);
+            $this->createEncapsulatedPacket($buffer);
+        }
     }
 
     private function createEncapsulatedPacket(String $buffer): void

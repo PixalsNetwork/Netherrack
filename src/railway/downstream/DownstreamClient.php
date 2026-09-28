@@ -4,6 +4,7 @@
 namespace Nether\railway\downstream;
 
 use LogLevel;
+use Nether\network\engines\auth\AuthenticationEngine;
 use Nether\player\ProxiedPlayer;
 use Nether\ProxyServer;
 use Nether\railway\engines\transport\RailwayEngine;
@@ -28,7 +29,7 @@ use raklib\utils\InternetAddress;
 class DownstreamClient extends ClientSocket
 {
 
-    private ProxiedPlayer $player;
+    public ProxiedPlayer $player;
     public ProxyServer $pr_server;
     private RailwayEngine $engine;
     private DownstreamServer $server;
@@ -72,7 +73,7 @@ class DownstreamClient extends ClientSocket
             }
             if($this->session !== null && $this->session->pendingNetworkSettings) {
                 $this->session->pendingNetworkSettings = false;
-                $this->session->createBedrockDataPackets(RequestNetworkSettingsPacket::create(2193));
+                $this->session->createBedrockDataPackets(RequestNetworkSettingsPacket::create(2193), false);
 
             }
             $this->onPacketRecieve($buffer);
@@ -165,5 +166,9 @@ class DownstreamClient extends ClientSocket
         }
 
         $this->session->handlePacket($p);
+    }
+
+    public function getClientSession() : DownstreamSession {
+        return $this->session;
     }
 }
