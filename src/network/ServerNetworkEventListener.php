@@ -73,7 +73,7 @@ class ServerNetworkEventListener implements ServerEventListener {
         $sessionPlayer = $this->session_manager->getSession($session->getNetworkId());
         if($sessionPlayer->getCompression()) {
             $compressed = substr($payload, 1);
-            $decompressed = snappy_uncompress($compressed);
+            $decompressed = zlib_decode($compressed);
             $payload = $decompressed;
         }
 

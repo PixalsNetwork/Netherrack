@@ -31,14 +31,15 @@ use pocketmine\network\mcpe\protocol\NetworkSettingsPacket;
 use pocketmine\network\mcpe\protocol\Packet;
 use pocketmine\network\mcpe\protocol\RequestNetworkSettingsPacket;
 use pocketmine\network\mcpe\protocol\serializer\PacketBatch;
+use pocketmine\network\mcpe\protocol\types\CompressionAlgorithm;
 
 class ClientNetworkLevelHandler {
 
-    private const COMPRESSION = "\x01";
+    private const COMPRESSION = "\x00";
 
     public function handleRequestNetworkSettings(Session $session, ProxiedSession $sP) : void {
         $stream = new ByteBufferWriter();
-        PacketBatch::encodePackets($stream, [NetworkSettingsPacket::create(NetworkSettingsPacket::COMPRESS_EVERYTHING, 1, false, 4, 0.0)]);
+        PacketBatch::encodePackets($stream, [NetworkSettingsPacket::create(NetworkSettingsPacket::COMPRESS_EVERYTHING, CompressionAlgorithm::ZLIB, false, 4, 0.0)]);
         $batchPayload = $stream->getData();
         $session->send($batchPayload);
         $sP->setCompression(true);
@@ -58,7 +59,7 @@ class ClientNetworkLevelHandler {
         $batchPayload = $stream->getData();
         
         if($sP->getCompression()) {
-            $batchPayload = self::COMPRESSION . snappy_compress($batchPayload);
+            $batchPayload = self::COMPRESSION . zlib_encode($batchPayload, ZLIB_ENCODING_RAW);
         }
         $session->send($batchPayload);
 

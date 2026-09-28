@@ -10,9 +10,13 @@ use Nether\railway\engines\transport\RailwayEngine;
 use Nether\railway\transportObj\DownstreamServer;
 use Override;
 use pmmp\webrtc\ConnectionState;
+use pocketmine\network\mcpe\protocol\RequestNetworkSettingsPacket;
 use raklib\client\ClientSocket;
+use raklib\protocol\ACK;
 use raklib\protocol\ConnectionRequest;
 use raklib\protocol\ConnectionRequestAccepted;
+use raklib\protocol\Datagram;
+use raklib\protocol\NACK;
 use raklib\protocol\NewIncomingConnection;
 use raklib\protocol\OpenConnectionReply1;
 use raklib\protocol\OpenConnectionReply2;
@@ -21,12 +25,14 @@ use raklib\protocol\OpenConnectionRequest2;
 use raklib\protocol\PacketSerializer;
 use raklib\utils\InternetAddress;
 
-class DownstreamClient extends ClientSocket {
+class DownstreamClient extends ClientSocket
+{
 
     private ProxiedPlayer $player;
-    private ProxyServer $pr_server;
+    public ProxyServer $pr_server;
     private RailwayEngine $engine;
     private DownstreamServer $server;
+    private ?DownstreamSession $session = null;
 
     private ConnectionState $state;
 
@@ -38,8 +44,9 @@ class DownstreamClient extends ClientSocket {
     private int $mtuSize;
 
 
-    public function __construct(InternetAddress $connectAddress, ProxiedPlayer $player, ProxyServer $server, RailwayEngine $engine, DownstreamServer $dserver){
-        
+    public function __construct(InternetAddress $connectAddress, ProxiedPlayer $player, ProxyServer $server, RailwayEngine $engine, DownstreamServer $dserver)
+    {
+
         $this->player = $player;
         $this->pr_server = $server;
         $this->engine = $engine;
@@ -48,18 +55,32 @@ class DownstreamClient extends ClientSocket {
         $this->createConnectionHandshake();
     }
 
-    public function recieve() : void {
-        
+    public function recieve(): void
+    {
+
+        if ($this->session !== null) {
+            $this->session->update(microtime(true));
+        }
+
         while ($this->pr_server->getNetherNetInstance()->isRunning()) {
             $buffer = $this->readPacket();
             if ($buffer === null || $buffer === '') {
                 continue;
             }
+            if ($this->session !== null) {
+                $this->handleConnectedPacket($buffer);
+            }
+            if($this->session !== null && $this->session->pendingNetworkSettings) {
+                $this->session->pendingNetworkSettings = false;
+                $this->session->createBedrockDataPackets(RequestNetworkSettingsPacket::create(2193));
+
+            }
             $this->onPacketRecieve($buffer);
         }
     }
 
-    private function createConnectionHandshake() : void {
+    private function createConnectionHandshake(): void
+    {
         $serializer = new PacketSerializer();
         // OpenConnReq1
         $r1 = new OpenConnectionRequest1;
@@ -71,12 +92,12 @@ class DownstreamClient extends ClientSocket {
 
 
 
-    private function onPacketRecieve(String $buffer) : void {
+    private function onPacketRecieve(String $buffer): void
+    {
         $id = ord($buffer[0]);
         $global_serializer = new PacketSerializer();
-        echo "GOT SOME" . PHP_EOL;
 
-        if($id == OpenConnectionReply1::$ID){
+        if ($id == OpenConnectionReply1::$ID) {
             $serializer = new PacketSerializer($buffer);
             $re1 = new OpenConnectionReply1;
             $re1->decode($serializer);
@@ -95,52 +116,54 @@ class DownstreamClient extends ClientSocket {
             $r2->encode($global_serializer);
 
             $this->writePacket($global_serializer->getBuffer());
-            echo "GOT OPR1 SENT OPRE2" . PHP_EOL;
-        }
-
-        if($id == OpenConnectionReply2::$ID) {
+        } elseif ($id == OpenConnectionReply2::$ID) {
 
             $serializer = new PacketSerializer($buffer);
             $re2 = new OpenConnectionReply2;
             $re2->decode($serializer);
             $this->clientAdd = $re2->clientAddress;
-
+            $this->pr_server->getProxyLogger()->log(LogLevel::INFO, "Finished First Handshake With a Downstream");
             $cr_1 = new ConnectionRequest;
             $cr_1->clientID = $this->clientID;
             $cr_1->sendPingTime = $this->getRakNetTime();
             $cr_1->useSecurity = $this->server_sec;
-            $cr_1->encode($global_serializer);
-            $this->writePacket($global_serializer->getBuffer());
-            echo "GOT OPR2 SENT CR" . PHP_EOL;
-
+            $this->session = new DownstreamSession($this->pr_server->getProxyLogger(), new InternetAddress($this->server->getAddress(), $this->server->getPort(), 4), $this->clientID, $this->mtuSize, $this);
+            $this->session->sendPacket($cr_1);
         }
-        // TODO: Connected Session - Send ACK and recieve Datagrams.
-        echo $id . PHP_EOL;
-        echo $buffer . PHP_EOL;
-        if($id == ConnectionRequestAccepted::$ID) {
-
-            $serializer = new PacketSerializer($buffer);
-            $cr_re = new ConnectionRequestAccepted;
-            $cr_re->decode($serializer);
 
 
-            $new_in = new NewIncomingConnection;
-            $new_in->address = $cr_re->address;
-            $new_in->systemAddresses = $cr_re->systemAddresses;
-            $new_in->sendPingTime = $cr_re->sendPongTime;
-            $new_in->sendPongTime = $this->getRakNetTime();
 
-            $new_in->encode($global_serializer);
-            $this->writePacket($global_serializer->getBuffer());
-            $this->state = ConnectionState::CONNECTED;
-            $this->pr_server->getProxyLogger()->log(LogLevel::INFO, "Finished First Handshake With a Downstream");
-        }
+
+
+        // Finished Offline Handshake, Online Handshake is at DownstreamSession.php
     }
 
-    private function getRakNetTime(): int {
+    private function getRakNetTime(): int
+    {
         return (int) (hrtime(true) / 1_000_000);
     }
 
+    private function handleConnectedPacket(string $buffer): void
+    {
 
+        $id = ord($buffer[0]);
+        $ser = new PacketSerializer($buffer);
 
+        if ($id == ACK::$ID) {
+            $p = new ACK();
+            $p->decode($ser);
+        } elseif ($id == NACK::$ID) {
+            $p = new NACK();
+            $p->decode($ser);
+        } elseif ($id == 0x80) {
+            $p = new Datagram();
+            $p->decode($ser);
+        } else {
+            throw new \RuntimeException(
+                "Unknown connected RakNet packet ID: 0x" . strtoupper(dechex($id))
+            );
+        }
+
+        $this->session->handlePacket($p);
+    }
 }
