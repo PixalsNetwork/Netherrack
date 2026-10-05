@@ -1,359 +1,187 @@
 # Netherrack
 
-**A PHP-based networking and communication layer for Minecraft server networks.**
+**The networking layer for Minecraft server networks.**
 
-Netherrack is designed to provide a unified communication layer between a network proxy and its downstream Minecraft servers, allowing network-wide systems and services to be implemented without every server having to reinvent the same infrastructure.
+Netherrack is a PHP-based networking and communication layer designed to connect Minecraft servers together through a unified proxy and network API.
+
+It provides the foundation for building network-wide systems such as player transfers, ranks, permissions, clans, friends, server discovery, and other shared services without requiring every downstream server to implement its own networking logic.
 
 > [!WARNING]
-> **Netherrack must NOT be used with proxies or downstream servers that are directly exposed to the public Internet.**
+> **Netherrack is designed for trusted/private network environments.**
 >
-> Netherrack assumes that the proxy and its downstream services operate within a **trusted, private environment**, such as the same VPS, private network, or otherwise isolated infrastructure.
+> Netherrack must **not** be deployed with downstream servers or internal communication endpoints exposed directly to the public Internet.
 >
-> If communication between Netherrack and a downstream server crosses an untrusted network, then please wait for further updates that enables Upstream to Downstream Encryption System
+> If Netherrack and its downstream servers communicate across an untrusted network, then please for further updates for Upstream <-> Downstream Encryption.
 
 ---
 
-## Overview
+## Why Netherrack?
 
-A typical Netherrack deployment looks like this:
+Minecraft networks often end up with every server maintaining its own implementation of network-wide functionality.
+
+Netherrack aims to change that.
+
+Instead of:
 
 ```text
-                         INTERNET
-                            │
-                            │
-                      Secure connection
-                            │
-                            ▼
-                    ┌───────────────┐
-                    │  Netherrack   │
-                    │     Proxy     │
-                    └───────┬───────┘
-                            │
-                    Authenticated IPC
-                            │
-             ┌──────────────┼──────────────┐
-             ▼              ▼              ▼
-          Lobby          BedWars        Factions
+Lobby ── custom implementation
+BedWars ── custom implementation
+Factions ── custom implementation
+SkyBlock ── custom implementation
 ```
 
-Netherrack separates the **Internet-facing connection** from the **internal network communication layer**.
+Netherrack provides a common layer:
 
-The player-facing connection is responsible for protecting traffic crossing the public Internet.
+```text
+                 Netherrack
+                /     |     \
+               /      |      \
+           Lobby   BedWars   Factions
+```
 
-The internal communication layer assumes that the infrastructure hosting Netherrack and its downstream servers is trusted.
+Servers can communicate with the network through a consistent interface while Netherrack handles the coordination between them.
 
 ---
 
-## Security Model
+## Features
 
-Netherrack intentionally does **not** treat every internal connection as an Internet connection.
+Netherrack is built to support network-wide functionality
 
-### Client → Netherrack
-
-This is an untrusted network boundary.
-
-Client-facing communication should therefore use the appropriate encryption and authentication mechanisms.
-
-```text
-Player
-   │
-   │ Encrypted / authenticated
-   ▼
-Netherrack
-```
-
-### Netherrack → Downstream
-
-When the downstream server is running on the same trusted machine or private infrastructure, Netherrack does not require application-level encryption for the internal transport.
-
-```text
-Netherrack
-   │
-   │ Authenticated internal communication
-   ▼
-Downstream
-```
-
-The downstream endpoint should be restricted so that it cannot be accessed directly from the public Internet.
-
-For same-machine deployments, prefer:
-
-- `127.0.0.1`
-- Unix domain sockets
-- Private network interfaces
-- Firewall restrictions
-- Authentication between Netherrack and downstream services
-
----
-
-## Why Isn't Internal Traffic Encrypted?
-
-Encryption is not automatically equivalent to security.
-
-If an attacker has sufficient privileges to inspect traffic between two processes on the same machine, they may already have the ability to access the processes, memory, credentials, or host itself.
-
-Netherrack therefore focuses its encryption requirements on the **actual untrusted boundary** rather than adding unnecessary cryptographic complexity to local communication.
-
-This also keeps the communication layer simpler and easier to maintain.
-
-If Netherrack and a downstream server are deployed on different machines across an untrusted network, the transport **must be protected with an appropriate encrypted channel**.
-
----
-
-## Requirements
-
-Netherrack is intended for controlled server-network infrastructure.
-
-A recommended deployment should provide:
-
-- A private or isolated network environment
-- Restricted downstream ports
-- Authentication between Netherrack and downstream services
-- Proper firewall configuration
-- Secure management of secrets
-- An encrypted client-facing connection
-
-### Never expose downstream services directly
-
-Do **not** configure your infrastructure like this:
-
-```text
-Internet
-   │
-   ├──────────────► Netherrack
-   │
-   └──────────────► Downstream Server
-```
-
-Instead:
-
-```text
-Internet
-   │
-   ▼
-Netherrack
-   │
-   ▼
-Private Downstream Server
-```
-
-The downstream server should not be independently reachable by arbitrary Internet clients.
-
----
-
-## What Netherrack Provides
-
-Netherrack is intended to centralize common network functionality such as:
-
-- Player identity
-- Player transfers
-- Network-wide ranks
-- Permissions
-- Clans
-- Friends
-- Network statistics
-- Cross-server communication
-- Server discovery
-- Network events
-- Shared player data
-- Administrative communication
-- Network-wide services
-
-Instead of implementing these systems independently on every server, Netherrack provides a common communication layer.
-
-```text
-             Netherrack
-                  │
-       ┌──────────┼──────────┐
-       │          │          │
-       ▼          ▼          ▼
-    Lobby      BedWars    Factions
-       │          │          │
-       └──────────┼──────────┘
-                  │
-           Shared Services
-```
-
----
-
-## Design Philosophy
-
-Netherrack follows a few simple principles.
-
-### 1. Keep the network unified
-
-Network-wide functionality should have a single source of truth.
-
-### 2. Don't duplicate infrastructure
-
-Individual servers should not need to independently implement systems that belong to the network.
-
-### 3. Keep communication simple
-
-The communication layer should be predictable, debuggable, and easy to extend.
-
-### 4. Secure the actual boundaries
-
-Security should be based on the deployment's real threat model rather than adding cryptography everywhere by default.
-
-### 5. Don't reinvent unnecessary infrastructure
-
-Netherrack should provide the functionality needed by the network while relying on established technologies and infrastructure where appropriate.
+The exact functionality is intended to grow alongside the needs of the network.
 
 ---
 
 ## Architecture
 
-Netherrack is designed around three major layers:
+A typical Netherrack network looks like:
 
 ```text
-┌─────────────────────────────────────────┐
-│              Client Layer               │
-│                                         │
-│     Players / Minecraft Clients        │
-└───────────────────┬─────────────────────┘
-                    │
-             Secure Transport
-                    │
-┌───────────────────▼─────────────────────┐
-│            Netherrack Proxy             │
-│                                         │
-│  Routing • Authentication • Network API │
-└───────────────────┬─────────────────────┘
-                    │
-          Internal Communication
-                    │
-┌───────────────────▼─────────────────────┐
-│          Downstream Servers             │
-│                                         │
-│ Lobby • Games • Factions • etc.         │
-└─────────────────────────────────────────┘
+                     Players
+                        │
+                        ▼
+                 ┌─────────────┐
+                 │ Netherrack  │
+                 │    Proxy    │
+                 └──────┬──────┘
+                        │
+                 Network Communication
+                        │
+          ┌─────────────┼─────────────┐
+          ▼             ▼             ▼
+       Lobby         BedWars       Factions
 ```
 
-Netherrack acts as the network-level coordination layer rather than attempting to replace every component of the Minecraft server stack.
+Netherrack acts as the central communication layer between the proxy and downstream servers.
+
+This allows individual servers to focus on their actual game functionality instead of independently implementing network infrastructure.
+
+---
+
+## Communication
+
+Netherrack separates the **client-facing connection** from communication with downstream servers.
+
+The connection between players and Netherrack is treated as an Internet-facing connection and uses encryption where required.
+
+Communication between Netherrack and downstream servers is intended primarily for trusted infrastructure.
+
+For servers running on the same machine, Netherrack can communicate through local interfaces without requiring application-level encryption for every packet.
+
+For remote downstream servers, the communication channel isn't supported yet.
 
 ---
 
 ## Deployment
 
-A recommended single-host deployment:
+Netherrack is primarily intended to run in environments such as:
 
 ```text
                  VPS
-┌────────────────────────────────────────────┐
-│                                            │
-│  Internet                                  │
-│     │                                      │
-│     ▼                                      │
-│  Netherrack                                │
-│     │                                      │
-│     │ localhost / Unix socket              │
-│     ▼                                      │
-│  ┌─────────┬─────────┬─────────┐           │
-│  │ Lobby   │ BedWars │ Factions│           │
-│  └─────────┴─────────┴─────────┘           │
-│                                            │
-└────────────────────────────────────────────┘
+                  │
+          ┌───────▼───────┐
+          │  Netherrack   │
+          └───────┬───────┘
+                  │
+        ┌─────────┼─────────┐
+        ▼         ▼         ▼
+      Lobby    BedWars   Factions
 ```
 
-Only Netherrack should need to be exposed to the public Internet.
+The proxy should be the public entry point to the network.
+
+Downstream servers should remain private and should not be independently accessible from the public Internet.
 
 ---
 
-## Remote Downstream Servers
+## Project Goals
 
-Running downstream servers on separate machines is possible, but the security requirements change.
+Netherrack aims to provide:
 
-```text
-VPS A                         VPS B
+- A unified networking layer
+- A simple developer experience
+- Consistent communication between servers
+- Reusable network-wide functionality
+- A clean PHP API
+- Minimal duplication between downstream servers
+- A foundation for larger Minecraft networks
 
-Netherrack  ═══ encrypted ═══►  Backend
+The project is **not** intended to replace other Minecraft Server softwares.
+
+Instead, Netherrack is a more simple layer and PHP-Based than others.
+
+---
+
+## Example
+
+A game server can request a player transfer through Netherrack rather than implementing its own communication system:
+
+```php
+$player->getPlayerConnection()->transfer('lobby');
 ```
 
-Do not assume that the internal Netherrack protocol is safe simply because it is normally used on localhost.
+The exact API is subject to change during development.
 
-When traffic crosses an untrusted network, protect the transport accordingly.
-
-Possible approaches include:
-
-- VPN/private networking
-- TLS
-- Encrypted tunnels
-- Other established secure transport mechanisms
-
-Do not expose the internal communication endpoint directly to the Internet without appropriate protection.
+The goal is to make network operations feel like normal application development rather than low-level packet management.
 
 ---
 
-## Authentication
+## Status
 
-Netherrack should authenticate downstream services before allowing them to participate in the network.
+Netherrack is currently under active development.
 
-Authentication credentials must:
+APIs, protocols, and internal architecture may change significantly before the project reaches a stable release.
 
-- Never be committed to source control
-- Never be distributed publicly
-- Be stored securely
-- Be rotated when compromised
-- Be unique to the deployment where practical
-
-Authentication establishes **who is allowed to communicate**.
-
-Encryption establishes **who can read the communication while it crosses an untrusted network**.
-
-These are separate security concerns.
+It should therefore be considered **experimental software** until a stable release is announced.
 
 ---
 
-## Threat Model
+## Requirements
 
-Netherrack is designed primarily to protect against threats crossing the public network boundary.
+- PHP
+- A compatible Minecraft server/proxy environment
+- Network infrastructure capable of providing private communication between Netherrack and downstream servers
 
-It does **not** attempt to protect against a fully compromised host.
-
-If an attacker has root-level access to the machine running Netherrack and its downstream servers, the host itself should be considered compromised.
-
-Netherrack is not intended to provide security against:
-
-- A malicious root user
-- A fully compromised VPS
-- Malicious administrators with host-level access
-- Malware already controlling the host
-- Direct public exposure of downstream services
-
-Host security remains the responsibility of the deployment.
+Additional requirements may vary depending on the features and integrations being used.
 
 ---
 
-## Development
+## Contributing
 
-Netherrack is primarily written in PHP.
+Contributions, ideas, and improvements are welcome.
 
-The project is intended to provide a practical foundation for Minecraft network infrastructure without requiring every network to build its own communication architecture from scratch.
+When contributing, prioritize:
 
-Contributions should favor:
+- Simple APIs
+- Clear architecture
+- Minimal unnecessary abstraction
+- Compatibility
+- Reliability
+- Maintainability
 
-- Simplicity
-- Clear interfaces
-- Minimal coupling
-- Predictable behavior
-- Testability
-- Security based on realistic threat models
-
-Avoid introducing cryptographic or networking complexity without a concrete requirement for it.
+Netherrack is intended to be infrastructure that developers can build on, not another layer of complexity that developers have to fight.
 
 ---
 
 ## License
 
-See `LICENSE` for licensing information.
-
----
-
-## Disclaimer
-
-Netherrack is infrastructure software. **A secure deployment depends on how it is configured.**
-
-Running Netherrack with publicly exposed downstream services, improperly configured firewalls, leaked credentials, or untrusted infrastructure can invalidate the security assumptions described above.
-
-**Do not expose Netherrack's internal communication endpoints directly to the public Internet.**
+See [`LICENSE`](LICENSE) for licensing information.
