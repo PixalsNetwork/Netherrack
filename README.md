@@ -9,7 +9,7 @@ Netherrack is designed to provide a unified communication layer between a networ
 >
 > Netherrack assumes that the proxy and its downstream services operate within a **trusted, private environment**, such as the same VPS, private network, or otherwise isolated infrastructure.
 >
-> If communication between Netherrack and a downstream server crosses an untrusted network, additional transport security must be implemented.
+> If communication between Netherrack and a downstream server crosses an untrusted network, then please wait for further updates that enables Upstream to Downstream Encryption System
 
 ---
 
