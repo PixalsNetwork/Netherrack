@@ -11,7 +11,7 @@ It provides the foundation for building network-wide systems such as player tran
 >
 > Netherrack must **not** be deployed with downstream servers or internal communication endpoints exposed directly to the public Internet.
 >
-> If Netherrack and its downstream servers communicate across an untrusted network, then please for further updates for Upstream <-> Downstream Encryption.
+> If Netherrack and its downstream servers communicate across an untrusted network, then please wait for further updates for Upstream <-> Downstream Encryption.
 
 ---
 
